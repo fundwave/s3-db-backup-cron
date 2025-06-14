@@ -20,7 +20,7 @@ BACKUP_FILE="restore-$TIME_STAMP"
 
 echo "Getting last backup..."
 if [[ -z "$VERSION_ID" || "$VERSION_ID" == 'latest' ]]; then VERSION_OPTION=''; else VERSION_OPTION="--version-id $VERSION_ID"; fi
-aws s3api get-object --bucket $BUCKET_NAME --key "${S3_PREFIX:+${S3_PREFIX}/}$FILENAME".tar.gz $BACKUP_FILE.tar.gz $VERSION_OPTION $AWS_ARGS
+aws s3api get-object --bucket $BUCKET_NAME --key "${S3_PREFIX}$FILENAME".tar.gz $BACKUP_FILE.tar.gz $VERSION_OPTION $AWS_ARGS
 
 echo "Extracting last backup..."
 mkdir -p "$FILE_PATH"restores

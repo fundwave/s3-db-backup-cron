@@ -9,7 +9,7 @@ echo "$FILE_PATH""$FILE"
 TAR_MD5_SUM=$(openssl md5 -binary "$FILE_PATH$FILE".tar.gz | base64)                                                                                                    
 SQL_MD5_SUM=$(openssl md5 -binary $FILE_PATH$FILE".sql" | base64)                                                                                                       
 #REMOTE_SQL_MD5_SUM=$(aws s3api head-object --bucket $BUCKET --key "$FILE".tar.gz --query 'Metadata.sqlmd5checksum' --output text)
-REMOTE_SQL_MD5_SUM=$(aws s3api head-object --bucket $BUCKET --key "${S3_PREFIX:+${S3_PREFIX}/}$FILE".tar.gz --query 'Metadata.sqlmd5checksum' --output text 2>&1) || (if grep -q "An error occurred (404) when calling the HeadObject operation: Not Found" <<< "$REMOTE_SQL_MD5_SUM"; then echo "$REMOTE_SQL_MD5_SUM"; else echo "$REMOTE_SQL_MD5_SUM" 1>&2; fi)
+REMOTE_SQL_MD5_SUM=$(aws s3api head-object --bucket $BUCKET --key "${S3_PREFIX}$FILE".tar.gz --query 'Metadata.sqlmd5checksum' --output text 2>&1) || (if grep -q "An error occurred (404) when calling the HeadObject operation: Not Found" <<< "$REMOTE_SQL_MD5_SUM"; then echo "$REMOTE_SQL_MD5_SUM"; else echo "$REMOTE_SQL_MD5_SUM" 1>&2; fi)
 
 echo $SQL_MD5_SUM                                                                                                                                                       
 echo $REMOTE_SQL_MD5_SUM                                                                                                                                                
