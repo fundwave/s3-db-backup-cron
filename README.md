@@ -43,8 +43,12 @@ Add the below section to your docker compose:
       # Only when backing up MongoDB
       - MONGODB_URI=
       - MONGO_DATABASES=
-      # Specify backup hour of day, defaults to 23
+      # Specify backup hour of day, defaults to 23 (DEPRECATED: Use FULL_BACKUP_CRON instead)
       - HOUR_OF_DAY=      
+      # Specify full backup cron schedule (supports both mysqldump and Percona full backups)
+      - FULL_BACKUP_CRON=0 23 * * 0
+      # Specify incremental backup cron schedule (Percona incremental backups only)
+      - INCREMENTAL_BACKUP_CRON=0 2 * * 1-6
       # Specify AWS credentials or skip if using AWS IAM roles 
       - AWS_ACCESS_KEY_ID=
       - AWS_SECRET_ACCESS_KEY=   
@@ -54,6 +58,24 @@ Add the below section to your docker compose:
       - BACKUPS_DISABLED=TRUE
     restart: always
 ```
+
+### Backup Types and Schedules
+
+This container now supports two types of backup schedules for MySQL/MariaDB:
+
+1. **Full Backups** (`FULL_BACKUP_CRON`): Performs both mysqldump and Percona XtraBackup full backups
+   - Example: `FULL_BACKUP_CRON=0 23 * * 0` (weekly on Sunday at 23:00)
+   
+2. **Incremental Backups** (`INCREMENTAL_BACKUP_CRON`): Performs Percona XtraBackup incremental backups
+   - Example: `INCREMENTAL_BACKUP_CRON=0 2 * * 1-6` (daily Mon-Sat at 02:00)
+
+**Cron Schedule Format**: `minute hour day-of-month month day-of-week`
+
+**Example Use Case**: 
+- Full backups weekly on Sundays: `FULL_BACKUP_CRON=0 23 * * 0`
+- Incremental backups daily Monday through Saturday: `INCREMENTAL_BACKUP_CRON=0 2 * * 1-6`
+
+**Backward Compatibility**: The `HOUR_OF_DAY` environment variable is still supported for existing deployments, but using `FULL_BACKUP_CRON` and `INCREMENTAL_BACKUP_CRON` is recommended.
 
 ### NOTE
 
