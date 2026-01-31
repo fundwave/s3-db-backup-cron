@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Clear existing crontab
-> crontab.txt
+true > crontab.txt
 
 # Support for backward compatibility with HOUR_OF_DAY (uses original script.sh)
 if [ -n "${HOUR_OF_DAY}" ]; then
