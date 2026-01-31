@@ -27,10 +27,10 @@ TIME_STAMP=$(timestamp)
 S3_KEY="${S3_PREFIX}percona/${BACKUP_TYPE}/${TAR_FILE%.tar.gz}-${TIME_STAMP}.tar.gz"
 
 aws s3api put-object \
-    --bucket $BUCKET \
+    --bucket "$BUCKET" \
     --key "${S3_KEY}" \
     --body "${FILE_PATH}${TAR_FILE}" \
-    --content-md5 $TAR_MD5_SUM \
-    --metadata backuptype=${BACKUP_TYPE},timestamp=${TIME_STAMP}
+    --content-md5 "$TAR_MD5_SUM" \
+    --metadata backuptype="${BACKUP_TYPE}",timestamp="${TIME_STAMP}"
 
 echo "Percona backup uploaded successfully to s3://${BUCKET}/${S3_KEY}"

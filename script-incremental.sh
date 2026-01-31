@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVER=${SERVER:-"db"}
-CURRENT_DIR=$(dirname $0)
+CURRENT_DIR=$(dirname "$0")
 
 BACKUPS_DISABLED=${BACKUPS_DISABLED:-"false"}
 
@@ -24,7 +24,7 @@ then
   exit 0
 fi
 
-if ! [ -z ${DB_NAME} ] && ! [  -z ${SERVER} ] ; then 
+if [ -n "${DB_NAME}" ] && [ -n "${SERVER}" ] ; then 
 
   echo "MYSQL INCREMENTAL BACKUP (Percona)"
   echo "==================================="
@@ -32,17 +32,17 @@ if ! [ -z ${DB_NAME} ] && ! [  -z ${SERVER} ] ; then
   # Determine the incremental number
   PERCONA_PATH="/opt/backup/percona/"
   LAST_INC=0
-  if ls ${PERCONA_PATH}inc* 1> /dev/null 2>&1; then
-      LAST_INC=$(ls -d ${PERCONA_PATH}inc* | sed 's/.*inc//' | sort -n | tail -1)
+  if ls "${PERCONA_PATH}"inc* 1> /dev/null 2>&1; then
+      LAST_INC=$(ls -d "${PERCONA_PATH}"inc* | sed 's/.*inc//' | sort -n | tail -1)
   fi
   NEXT_INC=$((LAST_INC + 1))
 
   echo "Step 1. Percona Incremental Backup (inc${NEXT_INC})"
-  $CURRENT_DIR/mysql/percona-incremental-backup.sh $MYSQL_USERNAME $MYSQL_PASSWORD $SERVER $DB_NAME "percona-backup" "/opt/backup/percona/"
+  "$CURRENT_DIR/mysql/percona-incremental-backup.sh" "$MYSQL_USERNAME" "$MYSQL_PASSWORD" "$SERVER" "$DB_NAME" "percona-backup" "/opt/backup/percona/"
   echo "Step 2. Saving Percona incremental backup to S3"
-  $CURRENT_DIR/mysql/percona-s3-upload.sh "inc${NEXT_INC}" $BUCKET_NAME "/opt/backup/percona/" "percona-backup"
+  "$CURRENT_DIR/mysql/percona-s3-upload.sh" "inc${NEXT_INC}" "$BUCKET_NAME" "/opt/backup/percona/" "percona-backup"
   echo "Step 3. Cleaning up Percona backup files"
-  $CURRENT_DIR/mysql/percona-clean.sh "/opt/backup/percona/" "percona-backup"
+  "$CURRENT_DIR/mysql/percona-clean.sh" "/opt/backup/percona/" "percona-backup"
   
   echo "Done MYSQL INCREMENTAL BACKUP"
 
