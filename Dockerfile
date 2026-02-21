@@ -1,7 +1,7 @@
 FROM alpine:3.23.3
 LABEL maintainer="mohit@getfundwave.com"
 
-RUN apk update && apk add --no-cache \
+RUN apk add --no-cache \
     python3 \
     py3-pip \
     mongodb-tools \
@@ -13,8 +13,6 @@ RUN apk update && apk add --no-cache \
     && pip3 install --upgrade pip --break-system-packages \
     && pip3 install awscli --break-system-packages \
     && mkdir -p /opt/backup
-
-ARG HOUR_OF_DAY
 
 WORKDIR /opt/backup
 
