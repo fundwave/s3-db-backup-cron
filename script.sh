@@ -13,6 +13,8 @@ fi
 
 if [ -z ${S3_PREFIX} ] ; then
   echo "S3_PREFIX is not set, backups will be stored in the root of the bucket."
+elif [[ -n "$S3_PREFIX" && "${S3_PREFIX: -1}" != "/" ]]; then
+  S3_PREFIX="${S3_PREFIX}/"
 else
   echo "S3_PREFIX is set to ${S3_PREFIX}";
 fi
