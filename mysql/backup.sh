@@ -22,6 +22,11 @@ fi
 
 echo "Changes found since last upload. Uploading now."
 
-aws s3api put-object --bucket $BUCKET --key "${S3_PREFIX%/}/$FILE".tar.gz --body "$FILE_PATH$FILE".tar.gz --content-md5 $TAR_MD5_SUM --metadata sqlmd5checksum=$SQL_MD5_SUM --tagging 'BACKUP_TYPE=MYSQL'
+TAGGING_PARAM=""
+if [[ "${ENABLE_S3_TAGS}" == "true" ]]; then
+  TAGGING_PARAM="--tagging BACKUP_TYPE=MYSQL"
+fi
+
+aws s3api put-object --bucket $BUCKET --key "${S3_PREFIX%/}/$FILE".tar.gz --body "$FILE_PATH$FILE".tar.gz --content-md5 $TAR_MD5_SUM --metadata sqlmd5checksum=$SQL_MD5_SUM $TAGGING_PARAM
 
 echo "Backup complete"
