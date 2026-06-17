@@ -31,7 +31,7 @@ if ! [ -z ${DB_NAME} ] && ! [  -z ${SERVER} ] ; then
   echo "============"
 
   echo "Step 1. Mysqldump"
-  $CURRENT_DIR/mysql/mysql-backup.sh $MYSQL_USERNAME $MYSQL_PASSWORD $SERVER $DB_NAME $FILE_NAME $FILE_PATH
+  $CURRENT_DIR/mysql/mysql-backup.sh $MYSQL_USERNAME $MYSQL_PASSWORD $SERVER $DB_NAME $FILE_NAME $FILE_PATH "$MYSQL_EXCLUDE_TABLES"
   echo "Step 2. Saving to S3"
   $CURRENT_DIR/mysql/backup.sh $FILE_NAME $BUCKET_NAME
   echo "Step 3. Cleaning it up"

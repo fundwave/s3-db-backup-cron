@@ -40,6 +40,8 @@ Add the below section to your docker compose:
       - MYSQL_PASSWORD=
       - SERVER=
       - DB_NAME=
+      # Optional: Comma-separated list of tables to exclude from MYSQL backup
+      - MYSQL_EXCLUDE_TABLES=
       # Only when backing up MongoDB
       - MONGODB_URI=
       - MONGO_DATABASES=
@@ -58,5 +60,15 @@ Add the below section to your docker compose:
 ### NOTE
 
 Backups are always enabled by default. If you wish to disable backups, you can set the BACKUPS_DISABLED environment variable as `TRUE` or `true`.
+
+### MySQL Table Exclusion
+
+To exclude specific tables from MySQL backups, set the `MYSQL_EXCLUDE_TABLES` environment variable with a comma-separated list of table names:
+
+```
+MYSQL_EXCLUDE_TABLES=table1,table2,table3
+```
+
+This will use the `--ignore-table` option in mysqldump to exclude the specified tables from the backup.
 
 Using [Dockerhub](https://hub.docker.com/r/fundwave/s3-db-backup-cron)? Replace `build:` with `image: fundwave/s3-db-backup-cron:latest`
