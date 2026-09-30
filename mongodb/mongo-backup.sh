@@ -10,6 +10,34 @@ if echo "$MONGODB_URI" | grep -q "MONGODB-AWS"; then
 
 fi
 
+MONGO_FILTERS=${MONGO_FILTERS:-"{}"}
+if ! jq -e 'type == "object" and all(.[]; .collection | type == "string")' <<< "$MONGO_FILTERS" > /dev/null; then
+  echo "MONGO_FILTERS must be a JSON object mapping each database to {\"collection\": ..., \"query\": ...}" 1>&2
+  exit 1
+fi
+
+uri_for_db() {
+  local URI=$1 DB=$2 OPTIONS=""
+  if [[ "$URI" == *\?* ]]; then
+    OPTIONS="?${URI#*\?}"
+    URI=${URI%%\?*}
+  fi
+  local SCHEME=${URI%%://*}
+  local HOSTS=${URI#*://}
+  HOSTS=${HOSTS%%/*}
+  echo "$SCHEME://$HOSTS/$DB$OPTIONS"
+}
+
+filter_args() {
+  local DB=$1
+  FILTER_ARGS=(--forceTableScan)
+  local COLLECTION=$(jq -r --arg db "$DB" '.[$db].collection // empty' <<< "$MONGO_FILTERS")
+  [ -z "$COLLECTION" ] && return
+  FILTER_ARGS+=(--collection "$COLLECTION")
+  local QUERY=$(jq -c --arg db "$DB" '.[$db].query // empty' <<< "$MONGO_FILTERS")
+  [ -n "$QUERY" ] && FILTER_ARGS=(--collection "$COLLECTION" --query "$QUERY")
+}
+
 if [ -z ${MONGO_DATABASES} ]; then
                                                                                                                                          
   CMD_OUT=$(mongodump --uri ${MONGODB_URI} --forceTableScan --out "./mongoBackups/db" 2>&1)                                                
@@ -21,7 +49,8 @@ else
   for val in $MONGO_DATABASES;                                                                                                               
   do                                                                                                                                         
   echo $val                                                                                                                                  
-  CMD_OUT=$(mongodump --uri ${MONGODB_URI}/${val} --forceTableScan --out "./mongoBackups/db" 2>&1)                                           
+  filter_args "$val"
+  CMD_OUT=$(mongodump --uri "$(uri_for_db "$MONGODB_URI" "$val")" "${FILTER_ARGS[@]}" --out "./mongoBackups/db" 2>&1)                                           
   if (grep -qw "0" <<< $?) then echo "$CMD_OUT"; else echo "$CMD_OUT" 1>&2 ; fi                                                              
   done                                                                                                                                   
 
