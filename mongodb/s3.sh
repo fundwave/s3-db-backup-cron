@@ -5,4 +5,4 @@ FILENAME=mongobackup.tar.gz
 
 tar czf ./mongoBackups/${FILENAME} ./mongoBackups/db/*
 
-test -f ./mongoBackups/${FILENAME} && aws s3api put-object --bucket $BUCKET_NAME --key "${S3_PREFIX}mongo-backup/$FILENAME" --body ./mongoBackups/${FILENAME}
+test -f ./mongoBackups/${FILENAME} && aws s3api put-object --bucket $BUCKET_NAME --key "${S3_PREFIX}mongo-backup/$FILENAME" --body ./mongoBackups/${FILENAME} ${S3_TAGGING:+--tagging "$S3_TAGGING"}

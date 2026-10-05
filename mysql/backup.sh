@@ -22,6 +22,6 @@ fi
 
 echo "Changes found since last upload. Uploading now."
 
-aws s3api put-object --bucket $BUCKET --key "${S3_PREFIX%/}/$FILE".tar.gz --body "$FILE_PATH$FILE".tar.gz --content-md5 $TAR_MD5_SUM --metadata sqlmd5checksum=$SQL_MD5_SUM
+aws s3api put-object --bucket $BUCKET --key "${S3_PREFIX}$FILE".tar.gz --body "$FILE_PATH$FILE".tar.gz --content-md5 $TAR_MD5_SUM --metadata sqlmd5checksum=$SQL_MD5_SUM ${S3_TAGGING:+--tagging "$S3_TAGGING"}
 
 echo "Backup complete"

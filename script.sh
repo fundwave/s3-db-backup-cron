@@ -11,13 +11,26 @@ if [ -z ${BUCKET_NAME} ] ; then
   exit 1;
 fi
 
-if [ -z ${S3_PREFIX} ] ; then
+if [ -z "${S3_PREFIX}" ] ; then
   echo "S3_PREFIX is not set, backups will be stored in the root of the bucket."
-elif [[ -n "$S3_PREFIX" && "${S3_PREFIX: -1}" != "/" ]]; then
-  S3_PREFIX="${S3_PREFIX}/"
 else
+  S3_PREFIX="${S3_PREFIX%/}/"
   echo "S3_PREFIX is set to ${S3_PREFIX}";
 fi
+export S3_PREFIX
+
+urlencode() {
+  python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"
+}
+
+S3_TAGGING=""
+if [ -n "${S3_TAG_KEY}" ] ; then
+  S3_TAGGING="$(urlencode "$S3_TAG_KEY")=$(urlencode "$S3_TAG_VALUE")"
+  echo "Backups will be tagged with ${S3_TAG_KEY}=${S3_TAG_VALUE}"
+elif [ -n "${S3_TAG_VALUE}" ] ; then
+  echo "S3_TAG_VALUE is set without S3_TAG_KEY, backups will not be tagged." 1>&2;
+fi
+export S3_TAGGING
 
 if [ $BACKUPS_DISABLED == 'TRUE' ] || [ $BACKUPS_DISABLED == 'true' ]
 then
