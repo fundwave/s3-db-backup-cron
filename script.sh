@@ -2,7 +2,7 @@
 
 SERVER=${SERVER:-"db"}
 FILE_NAME=${FILE_NAME:-"backup"}
-CURRENT_DIR=$(dirname $0)
+CURRENT_DIR=$(dirname "$0")
 
 BACKUPS_DISABLED=${BACKUPS_DISABLED:-"false"}
 
@@ -41,21 +41,50 @@ then
   exit 0
 fi
 
+run_mysql_backup() {
+  echo "Step 1. Mysqldump"
+  if ! "$CURRENT_DIR/mysql/mysql-backup.sh" "$MYSQL_USERNAME" "$MYSQL_PASSWORD" "$SERVER" "$DB_NAME" "$FILE_NAME" "$FILE_PATH" ; then
+    echo "MYSQL dump failed, skipping upload and cleanup." 1>&2;
+    return 1
+  fi
+
+  echo "Step 2. Saving to S3"
+  if ! "$CURRENT_DIR/mysql/backup.sh" "$FILE_NAME" "$BUCKET_NAME" ; then
+    echo "MYSQL upload failed, skipping cleanup." 1>&2;
+    return 1
+  fi
+
+  echo "Step 3. Cleaning it up"
+  "$CURRENT_DIR/mysql/clean.sh" "$FILE_NAME"
+  return 0
+}
+
+run_mongo_backup() {
+  echo "Step 1: Mongodump"
+  if ! bash "$CURRENT_DIR/mongodb/mongo-backup.sh" ; then
+    echo "Mongo dump failed, skipping upload and cleanup." 1>&2;
+    return 1
+  fi
+
+  echo "Step 2: Saving to S3"
+  if ! bash "$CURRENT_DIR/mongodb/s3.sh" ; then
+    echo "Mongo upload failed, skipping cleanup." 1>&2;
+    return 1
+  fi
+
+  echo "Step 3. Cleaning it up"
+  bash "$CURRENT_DIR/mongodb/clean.sh"
+  return 0
+}
+
 if ! [ -z ${DB_NAME} ] && ! [  -z ${SERVER} ] ; then 
 
   echo "MYSQL BACKUP"
   echo "============"
 
-  echo "Step 1. Mysqldump"
-  if ! $CURRENT_DIR/mysql/mysql-backup.sh $MYSQL_USERNAME $MYSQL_PASSWORD $SERVER $DB_NAME $FILE_NAME $FILE_PATH ; then
-    echo "MYSQL dump failed, skipping upload and cleanup." 1>&2;
-    BACKUP_FAILED=true
-  elif echo "Step 2. Saving to S3" && $CURRENT_DIR/mysql/backup.sh $FILE_NAME $BUCKET_NAME ; then
-    echo "Step 3. Cleaning it up"
-    $CURRENT_DIR/mysql/clean.sh $FILE_NAME
+  if run_mysql_backup ; then
     echo "Done MYSQL"
   else
-    echo "MYSQL backup failed, skipping cleanup." 1>&2;
     BACKUP_FAILED=true
   fi
 
@@ -66,16 +95,9 @@ if ! [ -z ${MONGODB_URI} ] ; then
   echo "MONGO BACKUP"
   echo "============"
 
-  echo "Step 1: Mongodump"
-  if ! bash $CURRENT_DIR/mongodb/mongo-backup.sh ; then
-    echo "Mongo dump failed, skipping upload and cleanup." 1>&2;
-    BACKUP_FAILED=true
-  elif echo "Step 2: Saving to S3" && bash $CURRENT_DIR/mongodb/s3.sh ; then
-    echo "Step 3. Cleaning it up"
-    bash $CURRENT_DIR/mongodb/clean.sh
+  if run_mongo_backup ; then
     echo "Done Mongo"
   else
-    echo "Mongo backup failed, skipping cleanup." 1>&2;
     BACKUP_FAILED=true
   fi
 

@@ -1,13 +1,15 @@
 #!/bin/bash
 
+set -o pipefail
+
 FILE=${1:-'backup'}
 BUCKET=${2}
 FILE_PATH=$(dirname $FILE_PATH$FILE)
 FILE_PATH="${FILE_PATH}""/"
 
 echo "$FILE_PATH""$FILE"
-TAR_MD5_SUM=$(openssl md5 -binary "$FILE_PATH$FILE".tar.gz | base64)
-SQL_MD5_SUM=$(openssl md5 -binary $FILE_PATH$FILE".sql" | base64)
+TAR_MD5_SUM=$(openssl md5 -binary "$FILE_PATH$FILE".tar.gz | base64) || { echo "Failed to compute md5 of tar file" 1>&2; exit 1; }
+SQL_MD5_SUM=$(openssl md5 -binary "$FILE_PATH$FILE".sql | base64) || { echo "Failed to compute md5 of sql file" 1>&2; exit 1; }
 #REMOTE_SQL_MD5_SUM=$(aws s3api head-object --bucket $BUCKET --key "$FILE".tar.gz --query 'Metadata.sqlmd5checksum' --output text)
 REMOTE_STATE=$(aws s3api head-object --bucket $BUCKET --key "${S3_PREFIX}$FILE".tar.gz --query "join('|', [Metadata.sqlmd5checksum || ''])" --output text 2>&1) || (if grep -q "An error occurred (404) when calling the HeadObject operation: Not Found" <<< "$REMOTE_STATE"; then echo "$REMOTE_STATE"; else echo "$REMOTE_STATE" 1>&2; fi)
 

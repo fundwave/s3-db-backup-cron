@@ -10,6 +10,8 @@ if echo "$MONGODB_URI" | grep -q "MONGODB-AWS"; then
 
 fi
 
+rm -rf ./mongoBackups
+
 if [ -z ${MONGO_DATABASES} ]; then
                                                                                                                                          
   CMD_OUT=$(mongodump --uri ${MONGODB_URI} --forceTableScan --out "./mongoBackups/db" 2>&1)                                                
