@@ -47,9 +47,10 @@ if ! [ -z ${DB_NAME} ] && ! [  -z ${SERVER} ] ; then
   echo "============"
 
   echo "Step 1. Mysqldump"
-  $CURRENT_DIR/mysql/mysql-backup.sh $MYSQL_USERNAME $MYSQL_PASSWORD $SERVER $DB_NAME $FILE_NAME $FILE_PATH
-  echo "Step 2. Saving to S3"
-  if $CURRENT_DIR/mysql/backup.sh $FILE_NAME $BUCKET_NAME ; then
+  if ! $CURRENT_DIR/mysql/mysql-backup.sh $MYSQL_USERNAME $MYSQL_PASSWORD $SERVER $DB_NAME $FILE_NAME $FILE_PATH ; then
+    echo "MYSQL dump failed, skipping upload and cleanup." 1>&2;
+    BACKUP_FAILED=true
+  elif echo "Step 2. Saving to S3" && $CURRENT_DIR/mysql/backup.sh $FILE_NAME $BUCKET_NAME ; then
     echo "Step 3. Cleaning it up"
     $CURRENT_DIR/mysql/clean.sh $FILE_NAME
     echo "Done MYSQL"
@@ -66,9 +67,10 @@ if ! [ -z ${MONGODB_URI} ] ; then
   echo "============"
 
   echo "Step 1: Mongodump"
-  bash $CURRENT_DIR/mongodb/mongo-backup.sh
-  echo "Step 2: Saving to S3"
-  if bash $CURRENT_DIR/mongodb/s3.sh ; then
+  if ! bash $CURRENT_DIR/mongodb/mongo-backup.sh ; then
+    echo "Mongo dump failed, skipping upload and cleanup." 1>&2;
+    BACKUP_FAILED=true
+  elif echo "Step 2: Saving to S3" && bash $CURRENT_DIR/mongodb/s3.sh ; then
     echo "Step 3. Cleaning it up"
     bash $CURRENT_DIR/mongodb/clean.sh
     echo "Done Mongo"

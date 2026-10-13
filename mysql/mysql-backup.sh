@@ -9,9 +9,9 @@ DATABASE=${4}
 FILENAME=${5:-'backup'}
 FILE_PATH=${6:-'/opt/backup'}
 
-mysqldump -h ${SERVER} --skip-dump-date --quick --user=${MYSQL_USERNAME} --password=${MYSQL_PASSWORD} ${DATABASE} > ${FILE_PATH}${FILENAME}.sql || { echo "Error: Failed to backup mysql database." 1>&2; }
+mysqldump -h ${SERVER} --skip-dump-date --quick --user=${MYSQL_USERNAME} --password=${MYSQL_PASSWORD} ${DATABASE} > ${FILE_PATH}${FILENAME}.sql || { echo "Error: Failed to backup mysql database." 1>&2; exit 1; }
 
 echo "Done backing up the database to a file."
 echo "Starting compression..."
-tar czf ${FILE_PATH}${FILENAME}.tar.gz ${FILE_PATH}${FILENAME}.sql
+tar czf ${FILE_PATH}${FILENAME}.tar.gz ${FILE_PATH}${FILENAME}.sql || { echo "Error: Failed to compress the backup file." 1>&2; exit 1; }
 echo "Done compressing the backup file."
