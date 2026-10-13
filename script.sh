@@ -11,10 +11,13 @@ if [ -z ${BUCKET_NAME} ] ; then
   exit 1;
 fi
 
+while [[ "$S3_PREFIX" == /* ]]; do S3_PREFIX="${S3_PREFIX#/}"; done
+while [[ "$S3_PREFIX" == */ ]]; do S3_PREFIX="${S3_PREFIX%/}"; done
+S3_PREFIX="${S3_PREFIX:+${S3_PREFIX}/}"
+
 if [ -z "${S3_PREFIX}" ] ; then
   echo "S3_PREFIX is not set, backups will be stored in the root of the bucket."
 else
-  S3_PREFIX="${S3_PREFIX%/}/"
   echo "S3_PREFIX is set to ${S3_PREFIX}";
 fi
 export S3_PREFIX
@@ -46,10 +49,14 @@ if ! [ -z ${DB_NAME} ] && ! [  -z ${SERVER} ] ; then
   echo "Step 1. Mysqldump"
   $CURRENT_DIR/mysql/mysql-backup.sh $MYSQL_USERNAME $MYSQL_PASSWORD $SERVER $DB_NAME $FILE_NAME $FILE_PATH
   echo "Step 2. Saving to S3"
-  $CURRENT_DIR/mysql/backup.sh $FILE_NAME $BUCKET_NAME
-  echo "Step 3. Cleaning it up"
-  $CURRENT_DIR/mysql/clean.sh $FILE_NAME
-  echo "Done MYSQL"
+  if $CURRENT_DIR/mysql/backup.sh $FILE_NAME $BUCKET_NAME ; then
+    echo "Step 3. Cleaning it up"
+    $CURRENT_DIR/mysql/clean.sh $FILE_NAME
+    echo "Done MYSQL"
+  else
+    echo "MYSQL backup failed, skipping cleanup." 1>&2;
+    BACKUP_FAILED=true
+  fi
 
 fi;
 
@@ -61,12 +68,20 @@ if ! [ -z ${MONGODB_URI} ] ; then
   echo "Step 1: Mongodump"
   bash $CURRENT_DIR/mongodb/mongo-backup.sh
   echo "Step 2: Saving to S3"
-  bash $CURRENT_DIR/mongodb/s3.sh
-  echo "Step 3. Cleaning it up"
-  bash $CURRENT_DIR/mongodb/clean.sh
-  echo "Done Mongo"
+  if bash $CURRENT_DIR/mongodb/s3.sh ; then
+    echo "Step 3. Cleaning it up"
+    bash $CURRENT_DIR/mongodb/clean.sh
+    echo "Done Mongo"
+  else
+    echo "Mongo backup failed, skipping cleanup." 1>&2;
+    BACKUP_FAILED=true
+  fi
 
 fi;
 
+if [ "$BACKUP_FAILED" == "true" ] ; then
+  echo "One or more backups failed." 1>&2;
+  exit 1
+fi
 
 echo "Done with all backups"
