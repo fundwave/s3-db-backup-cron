@@ -48,8 +48,13 @@ Add the below section to your docker compose:
       # Specify AWS credentials or skip if using AWS IAM roles 
       - AWS_ACCESS_KEY_ID=
       - AWS_SECRET_ACCESS_KEY=   
+      # Local folder for the MySQL dump before upload, defaults to /opt/backup/
+      - FILE_PATH=
       # Specify only if you want the backups stored in a specific folder
       - S3_PREFIX=
+      # Specify only if you want the backup objects tagged. Value may be left empty
+      - S3_TAG_KEY=
+      - S3_TAG_VALUE=
       # Specify only when backups need to be disabled
       - BACKUPS_DISABLED=TRUE
     restart: always
@@ -58,5 +63,7 @@ Add the below section to your docker compose:
 ### NOTE
 
 Backups are always enabled by default. If you wish to disable backups, you can set the BACKUPS_DISABLED environment variable as `TRUE` or `true`.
+
+Setting `S3_TAG_KEY` tags every uploaded backup object (MySQL and MongoDB) with `S3_TAG_KEY=S3_TAG_VALUE`. `S3_TAG_VALUE` is optional, the tag is then created with an empty value. Tagging requires the `s3:PutObjectTagging` permission on the bucket.
 
 Using [Dockerhub](https://hub.docker.com/r/fundwave/s3-db-backup-cron)? Replace `build:` with `image: fundwave/s3-db-backup-cron:latest`
