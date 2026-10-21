@@ -11,7 +11,7 @@ FILE_PATH=${6:-'/opt/backup'}
 
 rm -f "${FILE_PATH}${FILENAME}.sql" "${FILE_PATH}${FILENAME}.tar.gz"
 
-mysqldump -h "${SERVER}" --skip-dump-date --quick --user="${MYSQL_USERNAME}" --password="${MYSQL_PASSWORD}" "${DATABASE}" > "${FILE_PATH}${FILENAME}.sql" || { echo "Error: Failed to backup mysql database." 1>&2; exit 1; }
+mysqldump -h "${SERVER}" --skip-dump-date --single-transaction --quick --user="${MYSQL_USERNAME}" --password="${MYSQL_PASSWORD}" "${DATABASE}" > "${FILE_PATH}${FILENAME}.sql" || { echo "Error: Failed to backup mysql database." 1>&2; exit 1; }
 
 echo "Done backing up the database to a file."
 echo "Starting compression..."
