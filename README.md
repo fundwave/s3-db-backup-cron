@@ -48,6 +48,8 @@ Add the below section to your docker compose:
       # Specify AWS credentials or skip if using AWS IAM roles 
       - AWS_ACCESS_KEY_ID=
       - AWS_SECRET_ACCESS_KEY=   
+      # Local folder for the MySQL dump before upload, defaults to /opt/backup/
+      - FILE_PATH=
       # Specify only if you want the backups stored in a specific folder
       - S3_PREFIX=
       # Specify only if you want the backup objects tagged. Value may be left empty

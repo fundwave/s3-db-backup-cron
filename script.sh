@@ -2,6 +2,9 @@
 
 SERVER=${SERVER:-"db"}
 FILE_NAME=${FILE_NAME:-"backup"}
+FILE_PATH=${FILE_PATH:-"/opt/backup/"}
+FILE_PATH="${FILE_PATH%/}/"
+export FILE_PATH
 CURRENT_DIR=$(dirname "$0")
 
 BACKUPS_DISABLED=${BACKUPS_DISABLED:-"false"}

@@ -7,7 +7,7 @@ MYSQL_PASSWORD=${2}
 SERVER=${3:-'db'}
 DATABASE=${4}
 FILENAME=${5:-'backup'}
-FILE_PATH=${6:-'/opt/backup'}
+FILE_PATH=${6:-'/opt/backup/'}
 
 rm -f "${FILE_PATH}${FILENAME}.sql" "${FILE_PATH}${FILENAME}.tar.gz"
 

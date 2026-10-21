@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILENAME=${1:-'backup'}
-TMP_PATH=${FILE_PATH:-~/}
+TMP_PATH=${FILE_PATH:-'/opt/backup/'}
 
 echo "Removing the cache files..."
 # remove databases dump
